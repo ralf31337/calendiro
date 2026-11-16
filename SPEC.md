@@ -96,6 +96,7 @@ The app does not enforce planning rules between people. Anyone can change, move,
 ## Architecture
 
 - The app runs as one Docker container (`Dockerfile`, `docker-compose.yml`). It can also run directly with Node.
+- `GET /api/health` returns `{ "ok": true, "version": "<version>" }`. The image's health check uses it.
 - It is built with Node and TypeScript: an Express server with a JSON API, and a React client built with Vite. Live updates use server-sent events.
 - The server listens on `PORT` (default 3000) and stores data in `DATA_DIR` (default `./data`, `/data` in the container, mounted as a volume).
 - Data is stored in JSON files:
@@ -109,3 +110,13 @@ The app does not enforce planning rules between people. Anyone can change, move,
 - The files are read once at startup and the server keeps the data in memory. Edit the files only while the server is stopped; changes made while it runs are not picked up and will be overwritten.
 - Names are limited to 200 characters and notes to 10,000.
 - The web app has no authentication. The ICS feeds are public to anyone who knows a UUID.
+
+## Releases and Installation
+
+- The release version is stored in `VERSION` and has the format `x.y`. The first version is `0.1`.
+- A GitHub Actions workflow (`.github/workflows/docker.yml`) runs on every push to `main` and on pull requests. It type-checks, runs the tests, and builds the image for `linux/amd64` and `linux/arm64`. Pull requests are built but not published.
+- Every push to `main` publishes `ghcr.io/ralf31337/calendiro:edge` and `:sha-<commit>`. When `VERSION` holds a version that has no git tag yet, the same run also publishes `:<x.y>` and `:latest`, creates the git tag `v<x.y>`, and a GitHub release. Releasing therefore means bumping `VERSION`.
+- The image carries the version as `APP_VERSION` (`x.y` for releases, `x.y-edge.<commit>` otherwise), reported by `/api/health`.
+- `batch.sh` installs Calendiro on a machine with Docker and can be piped from curl. It creates the installation directory with `docker-compose.yml`, `.env`, `data/` and `update.sh`, and starts the app. Options: `--dir`, `--port`, `--version`, `--cron` (nightly update at 03:30). Running it again keeps an existing `docker-compose.yml` and the data.
+- The container runs as the user given by `CALENDIRO_UID`/`CALENDIRO_GID` in `.env`, so it can write the mounted `data/` directory. As root, the installer uses 1000:1000 and hands `data/` to that user.
+- `update.sh [latest|x.y|edge] [--force]` updates an installation and is meant to run from cron. It stores the version in `.env`, pulls the image, and does nothing if the running container already uses it. Otherwise it stops the container, starts the new one, waits up to 60 seconds for `/api/health`, and removes old Calendiro images. A failed pull leaves the running version untouched. Without an argument it moves to `latest`.

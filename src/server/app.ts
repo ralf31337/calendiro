@@ -78,6 +78,10 @@ export function createApp(store: Store, events: ChangeEvents, { clientDir, schoo
       }
     };
 
+  api.get("/health", (_req, res) => {
+    res.json({ ok: true, version: process.env.APP_VERSION ?? "dev" });
+  });
+
   api.get("/events", (_req, res) => events.subscribe(res));
 
   api.get("/years", read(() => store.listYears()));

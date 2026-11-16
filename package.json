@@ -1,6 +1,7 @@
 {
   "name": "calendiro",
   "version": "0.1.0",
+  "description": "Shared year planner for activities and vacations. The release version is in VERSION.",
   "private": true,
   "type": "module",
   "scripts": {

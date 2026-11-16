@@ -19,7 +19,9 @@ const schoolHolidays = new SchoolHolidays(
   process.env.SCHOOL_HOLIDAYS_API ?? "https://schulferien-api.de/api/v1",
 );
 const server = createApp(store, events, { clientDir, schoolHolidays }).listen(port, () => {
-  console.log(`Calendiro listening on http://localhost:${port} (data: ${dataDir})`);
+  console.log(
+    `Calendiro ${process.env.APP_VERSION ?? "dev"} listening on http://localhost:${port} (data: ${dataDir})`,
+  );
 });
 
 async function shutdown() {

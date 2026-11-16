@@ -70,6 +70,12 @@ describe("API", () => {
     expect((await fetch(`${base}/ics/${rotated.feedId}`)).status).toBe(200);
   });
 
+  it("reports health and version", async () => {
+    const res = await call("GET", "/api/health");
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ ok: true, version: process.env.APP_VERSION ?? "dev" });
+  });
+
   it("rejects invalid input and invalid JSON", async () => {
     expect((await call("POST", "/api/years", { year: "x" })).status).toBe(400);
     const res = await fetch(`${base}/api/people`, {
